@@ -49,12 +49,8 @@ void run_inference_background();
 /**
 * @brief      Arduino setup function
 */
-
-
 void setup()
-{
-    // put your setup code here, to run once:
-    
+{    
     Serial.begin(115200);
 
     if (!IMU.begin()) {
@@ -76,7 +72,7 @@ void setup()
     inference_thread.start(mbed::callback(&run_inference_background));
 }
 
-uint8_t effect1 = 1; //Haptic effect for resting tremor //Edit: These effects are just the preliminary ones, further analysis of all available effects will help select the perfect ones for each case
+uint8_t effect1 = 1;     //Haptic effect for resting tremor (other effects can be used)
 uint8_t effect2 = 123; //Haptic effect for action tremor
 
 /**
@@ -111,6 +107,7 @@ void run_inference_background()
     ei_classifier_smooth_t smooth;
     ei_classifier_smooth_init(&smooth, 10 /* no. of readings */, 7 /* min. readings the same */, 0.8 /* min. confidence */, 0.3 /* max anomaly */);
     while (1) {        
+        
         //drv.setWaveform(0, effect1); 
         //drv.setWaveform(1, 0);
 
@@ -136,10 +133,9 @@ void run_inference_background()
             return;
         }
 
-        /*float max_peak_height = 0;
+        float max_peak_height = 0;
         float min_peak_height = 0;
-          //float magnitude_of_acceleration = 0;
-          //float peak_difference = 0;
+        
         for(int i=0; i<((sizeof(inference_buffer))/sizeof(inference_buffer[0]));i=i+6){
 
             //For the first 3 of every 6 values of the inference buffer (accelerometer values), calculate the magnitude of acceleration
@@ -153,9 +149,10 @@ void run_inference_background()
             min_peak_height = magnitude_of_acceleration;
           }
         }
+        
         float peak_difference = max_peak_height-min_peak_height;
-        //ei_printf("\nThe peak difference is: %s", peak_difference);
-        //ei_printf("\nInstantaneous Magnitude of Acceleration: %s", instantaneous_magnitude_of_acceleration);*/
+        ei_printf("\nThe peak difference is: %s", peak_difference);
+        ei_printf("\nInstantaneous Magnitude of Acceleration: %s", instantaneous_magnitude_of_acceleration);
         
         // ei_classifier_smooth_update yields the predicted label
         const char *prediction = ei_classifier_smooth_update(&smooth, &result);
@@ -164,7 +161,7 @@ void run_inference_background()
         strcpy(current_prediction, prediction);
       
         //Condition for sending Haptic 'Alert" Signal (resting tremors)
-        /*if(((strcmp(last_prediction, "idle")==0) || (strcmp(last_prediction, "pill_rolling_tremor")==0)) && (strcmp(current_prediction, "pill_rolling_tremor")==0)){ //Edit: Check to see if this condition satisfies all requirements or if a confirmation of return to idle/voluntary motion state is required  
+        /*if(((strcmp(last_prediction, "idle")==0) || (strcmp(last_prediction, "pill_rolling_tremor")==0)) && (strcmp(current_prediction, "pill_rolling_tremor")==0)){ //Edit: Check to see if this condition satisfies all requirements or if a confirmation of return to idle/voluntary motion state is required
           ei_printf("\nPill Rolling Tremor Haptic Feedback GO");
           drv.setWaveform(0, effect1); 
           drv.setWaveform(1, 0);
@@ -173,44 +170,12 @@ void run_inference_background()
         }*/
 
         //Condition for sending Haptic 'Noise' Signal (action tremors)
-        /*else*/ //if(((strcmp(last_prediction, "pill_rolling_tremor")==0) || (strcmp(last_prediction, "pill_rolling_tremor")==0)) && (strcmp(current_prediction, "pill_rolling_tremor")==0)){ 
-        /*else*/ if(((strcmp(last_prediction, "voluntary_motion")==0) || (strcmp(last_prediction, "voluntary_motion")==0)) && (strcmp(current_prediction, "voluntary_motion")==0)){ 
-
+        if(((strcmp(last_prediction, "voluntary_motion")==0) || (strcmp(last_prediction, "voluntary_motion")==0)) && (strcmp(current_prediction, "voluntary_motion")==0)){ 
           ei_printf("\nTremor Motion Haptic Feedback GO");
           drv.setWaveform(0, random(1,123)); 
           drv.setWaveform(1, 0);
           drv.go();
           delay(200);
-          /*float max_peak_height = 0;
-          float min_peak_height = 0;
-          //float magnitude_of_acceleration = 0;
-          //float peak_difference = 0;
-          for(int i=0; i<((sizeof(inference_buffer))/sizeof(inference_buffer[0]));i=i+6){
-
-            //For the first 3 of every 6 values of the inference buffer (accelerometer values), calculate the magnitude of acceleration
-            float magnitude_of_acceleration = sqrt(sq(inference_buffer[i])+sq(inference_buffer[i+1])+sq(inference_buffer[i+2])); //Magnitude of acceleration [0,1]
-            ei_printf("\nThe mag_acc is: %s", magnitude_of_acceleration);
-            //Find maximum peak height, minimum peak height and range of values (peak difference)
-            if(max_peak_height<= magnitude_of_acceleration){
-              max_peak_height = magnitude_of_acceleration;
-            }
-            if(min_peak_height>= magnitude_of_acceleration){
-              min_peak_height = magnitude_of_acceleration;
-            }
-          }
-          float peak_difference = max_peak_height-min_peak_height;
-          ei_printf("\nThe peak difference is: %s", peak_difference);
-          ei_printf("\nInstantaneous Magnitude of Acceleration: %s", instantaneous_magnitude_of_acceleration);
-           
-          
-          ei_printf("\nThe peak difference is: %s", peak_difference);
-          ei_printf("\nInstantaneous Magnitude of Acceleration: %s", instantaneous_magnitude_of_acceleration);
-          if((instantaneous_magnitude_of_acceleration <= 0.8*peak_difference) && (instantaneous_magnitude_of_acceleration >= 0.2*peak_difference)){ //Edit: Arbitrary constraints of 80% and 20% used. Further analysis required for best constraint amount
-            Serial.print("\nWrist flexion Tremor Haptic Feedback GO");
-            drv.go(); //Edit: Currently, this effect will only trigger when the magnitude of acceleration is not at the peak values. (Might need to change to simply not maximum value). Amount of time the signal is passed could also be dependent on the value of mag_acc=> PWM input for haptic controller will need to be figured out. OR simply the effect could be changed up based on the frequency of the signal, and where in the signal we are
-            delay(100);
-          }*/
-           
         }
         
         strcpy(last_prediction, prediction); //copy prediction value to global var
