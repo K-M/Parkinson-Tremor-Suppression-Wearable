@@ -1,0 +1,20 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Arduino / PlatformIO build output
+build/
+*.bin
+*.hex
+*.elf
+.pio/
+
+# Edge Impulse exported library (distributed via GitHub Releases, see README)
+*_inferencing/
+ei-*-arduino-*.zip
+
+# Raw camera footage (compressed copies live in media/)
+*.MOV
+*.mov
